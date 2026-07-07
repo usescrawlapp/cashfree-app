@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>₹1 Subscription</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #171a21;
+    --accent: #6c5ce7;
+    --accent2: #00d9a3;
+    --text: #f2f2f2;
+    --muted: #9aa0ac;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #1c1f27, var(--bg));
+    color: var(--text);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 36px 30px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  h1 {
+    font-size: 22px;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  p.subtitle {
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 28px;
+    font-size: 14px;
+  }
+  label {
+    font-size: 13px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #2a2e38;
+    background: #1e222b;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+  button {
+    width: 100%;
+    margin-top: 26px;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), #a29bfe);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  button:hover { transform: translateY(-2px); }
+  button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .result {
+    display: none;
+    text-align: center;
+  }
+  .result.show { display: block; }
+  .checkmark {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: var(--accent2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #262a33;
+    font-size: 14px;
+  }
+  .info-row span:first-child { color: var(--muted); }
+  .error {
+    color: #ff6b6b;
+    font-size: 13px;
+    margin-top: 12px;
+    text-align: center;
+    display: none;
+  }
+  #formView.hide { display: none; }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div id="formView">
+    <h1>₹1 Subscription</h1>
+    <p class="subtitle">Enter your details to activate your subscription</p>
+
+    <label for="name">Full Name</label>
+    <input type="text" id="name" placeholder="Your name" required />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="you@example.com" required />
+
+    <button id="payBtn">Pay ₹1 & Subscribe</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <div class="result" id="resultView">
+    <div class="checkmark">✓</div>
+    <h1>Subscription Active</h1>
+    <p class="subtitle">Thank you for subscribing!</p>
+    <div class="info-row"><span>Name</span><span id="resName"></span></div>
+    <div class="info-row"><span>Email</span><span id="resEmail"></span></div>
+    <div class="info-row"><span>Order ID</span><span id="resOrderId"></span></div>
+    <div class="info-row"><span>Amount</span><span>₹1</span></div>
+    <div class="info-row"><span>Status</span><span id="resStatus"></span></div>
+  </div>
+
+</div>
+
+<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+<script>
+const payBtn = document.getElementById('payBtn');
+const errorMsg = document.getElementById('errorMsg');
+
+// On page load, check if we're returning from a payment (order_id in URL)
+window.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const orderId = params.get('order_id');
+  if (orderId) {
+    await verifyAndShow(orderId);
+  }
+});
+
+payBtn.addEventListener('click', async () => {
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  errorMsg.style.display = 'none';
+
+  if (!name || !email) {
+    errorMsg.textContent = 'Please enter both name and email.';
+    errorMsg.style.display = 'block';
+    return;
+  }
+
+  payBtn.disabled = true;
+  payBtn.textContent = 'Processing...';
+
+  try {
+    const res = await fetch('/api/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.payment_session_id) {
+      throw new Error(data.error || 'Could not create order');
+    }
+
+    // Store name/email locally so we can show them after redirect back
+    localStorage.setItem('sub_name', name);
+    localStorage.setItem('sub_email', email);
+    localStorage.setItem('sub_order_id', data.order_id);
+
+    // Use Cashfree's official SDK to open hosted checkout
+    const cashfree = Cashfree({ mode: data.environment === 'production' ? 'production' : 'sandbox' });
+    cashfree.checkout({
+      paymentSessionId: data.payment_session_id,
+      redirectTarget: '_self' // redirects back to this same page via return_url
+    });
+
+  } catch (err) {
+    errorMsg.textContent = err.message;
+    errorMsg.style.display = 'block';
+    payBtn.disabled = false;
+    payBtn.textContent = 'Pay ₹1 & Subscribe';
+  }
+});
+
+async function verifyAndShow(orderId) {
+  document.getElementById('formView').classList.add('hide');
+  try {
+    const res = await fetch('/api/verify-order?order_id=' + encodeURIComponent(orderId));
+    const data = await res.json();
+
+    const name = localStorage.getItem('sub_name') || data.customer_name || '-';
+    const email = localStorage.getItem('sub_email') || data.customer_email || '-';
+
+    document.getElementById('resName').textContent = name;
+    document.getElementById('resEmail').textContent = email;
+    document.getElementById('resOrderId').textContent = orderId;
+    document.getElementById('resStatus').textContent = data.order_status || 'Unknown';
+
+    document.getElementById('resultView').classList.add('show');
+  } catch (e) {
+    document.getElementById('formView').classList.remove('hide');
+    errorMsg.textContent = 'Could not verify payment. Please contact support.';
+    errorMsg.style.display = 'block';
+  }
+}
+</script>
+
+</body>
+</html>
