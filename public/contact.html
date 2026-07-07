@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact Us</title>
+<style>
+  :root { --bg:#0f1115; --card:#171a21; --accent:#6c5ce7; --text:#f2f2f2; --muted:#9aa0ac; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    background: radial-gradient(circle at top, #1c1f27, var(--bg));
+    color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif;
+    padding: 40px 20px; display:flex; justify-content:center;
+  }
+  .card {
+    background: var(--card); border-radius: 16px; padding: 36px 30px;
+    width: 100%; max-width: 640px; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  h1 { font-size: 26px; margin-bottom: 8px; }
+  p { color: var(--muted); line-height: 1.7; font-size: 15px; }
+  .info-row { margin: 18px 0; }
+  .info-row .label { color: var(--muted); font-size: 13px; display:block; margin-bottom:4px; }
+  .info-row .value { font-size: 15px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { display:inline-block; margin-top: 30px; font-size: 14px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Contact Us</h1>
+    <p>If you have any questions, need support, or want to get in touch regarding your subscription or payment, reach out to us using the details below.</p>
+
+    <div class="info-row">
+      <span class="label">Business Name</span>
+      <span class="value">Yashwant Singh</span>
+    </div>
+
+    <div class="info-row">
+      <span class="label">Email</span>
+      <span class="value"><a href="mailto:yashwantsingh2046@gmail.com">yashwantsingh2046@gmail.com</a></span>
+    </div>
+
+    <div class="info-row">
+      <span class="label">Response Time</span>
+      <span class="value">We typically respond within 24-48 hours.</span>
+    </div>
+
+    <a class="back" href="/">&larr; Back to Home</a>
+  </div>
+</body>
+</html>
